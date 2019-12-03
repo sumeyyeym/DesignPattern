@@ -10,6 +10,11 @@ namespace ObserverPattern1
     {
         static void Main(string[] args)
         {
+            Auctioneer auctioneer = new Auctioneer();
+            auctioneer.Attach(new Bidder(auctioneer, "1. Gözlemeci"));
+            auctioneer.Attach(new Bidder(auctioneer, "2. Gözlemeci"));
+            auctioneer.Attach(new Bidder(auctioneer, "3. Gözlemeci"));
+
             Console.ReadKey();
         }
     }
@@ -35,9 +40,18 @@ namespace ObserverPattern1
     /// </summary>
     public class Bidder : IObserver
     {
+        Auctioneer _subject;
+        string _name;
+
+        public Bidder(Auctioneer subject, string name)
+        {
+            this._subject = subject;
+            this._name = name;
+        }
         public void Update()
         {
-            throw new NotImplementedException();
+            AuctionStatus status = _subject.State;
+            _subject.Detach(this);
         }
     }
 
@@ -45,6 +59,11 @@ namespace ObserverPattern1
     {
         //açık arttırmayı yapan kişiyi gözlemleyenler
         private List<IObserver> _subscribers = null;
+
+        public Auctioneer()
+        {
+            _subscribers = new List<IObserver>();
+        }
 
         //aktif durum
         private AuctionStatus _activeStatus;        
@@ -74,12 +93,28 @@ namespace ObserverPattern1
 
         public void Detach(IObserver subscriber)
         {
-            throw new NotImplementedException();
+            foreach (var item in _subscribers)
+            {
+                if (_subscribers.Any(x => x.Equals(item)))
+                {
+                    _subscribers.Remove(subscriber);
+                    break;
+                }
+            }
+        }
+
+        public void Dispose()
+        {
+            GC.SuppressFinalize(this);
+            this.Dispose();
         }
 
         public void Notify()
         {
-            throw new NotImplementedException();
+            foreach (IObserver item in _subscribers)
+            {
+                item.Update();
+            }
         }
     }
 }
